@@ -1,0 +1,199 @@
+{
+  "name": "Daily price watch - scrape, clean, alert",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * *"
+            }
+          ]
+        }
+      },
+      "id": "8f1c2a10-0001-4a00-9a01-000000000001",
+      "name": "Every morning at 08:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-460, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://books.toscrape.com/catalogue/page-1.html",
+        "options": {
+          "timeout": 20000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": true
+            }
+          }
+        }
+      },
+      "id": "8f1c2a10-0002-4a00-9a01-000000000002",
+      "name": "Fetch catalogue page",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-240, 300],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "dataPropertyName": "data",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "titles",
+              "cssSelector": "article.product_pod h3 a",
+              "returnValue": "attribute",
+              "attribute": "title",
+              "returnArray": true
+            },
+            {
+              "key": "prices",
+              "cssSelector": "article.product_pod p.price_color",
+              "returnArray": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8f1c2a10-0003-4a00-9a01-000000000003",
+      "name": "Extract titles and prices",
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [-20, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pair each title with its price and turn the display string into a number.\n// Anything that does not parse is kept and flagged rather than dropped, so a\n// site change shows up as a visible problem instead of silently shrinking the\n// result set.\nconst input = $input.first().json;\nconst titles = input.titles || [];\nconst prices = input.prices || [];\n\nconst rows = titles.map((title, i) => {\n  const raw = (prices[i] || '').toString();\n  const match = raw.match(/([0-9]+(?:\\.[0-9]{1,2})?)/);\n  return {\n    json: {\n      title: title.trim(),\n      price_raw: raw.trim(),\n      price: match ? Number(match[1]) : null,\n      parsed_ok: Boolean(match),\n      captured_at: new Date().toISOString().slice(0, 10),\n    },\n  };\n});\n\nif (rows.length === 0) {\n  throw new Error('No rows extracted - the page structure probably changed.');\n}\n\nreturn rows;"
+      },
+      "id": "8f1c2a10-0004-4a00-9a01-000000000004",
+      "name": "Clean and type the rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "under-threshold",
+              "leftValue": "={{ $json.price }}",
+              "rightValue": 20,
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "8f1c2a10-0005-4a00-9a01-000000000005",
+      "name": "Under the alert threshold?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [420, 300]
+    },
+    {
+      "parameters": {},
+      "id": "8f1c2a10-0006-4a00-9a01-000000000006",
+      "name": "Send digest (plug in Slack or email here)",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [660, 200]
+    },
+    {
+      "parameters": {},
+      "id": "8f1c2a10-0007-4a00-9a01-000000000007",
+      "name": "Ignore - above threshold",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [660, 420]
+    }
+  ],
+  "connections": {
+    "Every morning at 08:00": {
+      "main": [
+        [
+          {
+            "node": "Fetch catalogue page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch catalogue page": {
+      "main": [
+        [
+          {
+            "node": "Extract titles and prices",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract titles and prices": {
+      "main": [
+        [
+          {
+            "node": "Clean and type the rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean and type the rows": {
+      "main": [
+        [
+          {
+            "node": "Under the alert threshold?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Under the alert threshold?": {
+      "main": [
+        [
+          {
+            "node": "Send digest (plug in Slack or email here)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ignore - above threshold",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "portfolio-demo"
+  },
+  "tags": []
+}

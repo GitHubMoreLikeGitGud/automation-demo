@@ -1,0 +1,10 @@
+customer_name,email,signup_date,amount,currency,country,phone
+John Smith,john.smith@example.com,2024-03-12,1299.00,GBP,United Kingdom,+442079460958
+Jane Doe,jane.doe@example.com,2024-03-14,450.50,USD,United States,5551234567
+Amara Okafor,amara.okafor@example.com,2024-03-14,2100.00,EUR,Germany,+4930901820
+Li Wei,li.wei@example.com,2024-03-15,88000.00,CNY,China,+861065529988
+Priya Sharma,priya.sharma@example.com,2024-03-16,75000.00,INR,India,+912222021234
+Carlos Mendez,carlos.mendez@example.com,2024-03-16,1050.00,USD,United States,+14155550132
+Tom O'Brien,tom.obrien@example.com,2024-03-17,99.00,GBP,United Kingdom,+441614960000
+Sofia Rossi,sofia.rossi@example.com,,,,Italy,+39066982
+Ken Tanaka,ken.tanaka@example.com,2024-03-17,,,Japan,+81332013331
