@@ -131,13 +131,11 @@ Python 3.12. No API keys, no accounts, no paid services.
   three spellings of the same country — but no real person's data appears in this repo.
 - The scrape target is a practice site on purpose. Client work targets whatever source we
   have agreed is appropriate.
-- I use AI as part of building this kind of thing, and I check the output before it goes
-  anywhere. Every number in this README came from running the code, not from describing it.
+- Every output is checked before it goes anywhere. Every number in this README came from
+  running the code, not from describing it.
 
 ## Who made this
 
 Umar M. — Computer Engineering diploma, Singapore Polytechnic.
 I build automations and clean up data: n8n and Make workflows, web scraping, messy
 spreadsheets, and Python scripts for the tasks you redo every week.
-
-Work with me on Fiverr: <https://www.fiverr.com/umarmohktar>
